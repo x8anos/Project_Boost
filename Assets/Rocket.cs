@@ -5,35 +5,56 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour {
 
+    [SerializeField] float rcsThrust = 100f;
+    [SerializeField] float mainThrust = 50f;
+
+
+
     Rigidbody rigidBody;
     AudioSource audioSource;
-    //Play the music
-    bool m_Play;
-    //Detect when you use the toggle, ensures music isn’t played multiple times
-    bool m_ToggleChange;
+    
+   
 
     // Use this for initialization
     void Start () {
 
+     
+
         rigidBody=GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
-        //Ensure the toggle is set to true for the music to play when needed
-       // m_Play = true;
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        ProcessInput();
-		
+        audioSource = GetComponent<AudioSource>();    
+
+    }
+
+    // Update is called once per frame
+    void Update () {
+        Thrust();
+        Rotate();		
 	}
 
-    private void ProcessInput()
+    void OnCollisionEnter(Collision collision)
     {
+       switch (collision.gameObject.tag)
+        {
+            case "Friendly":
+                print("OK");
+                break;
+            case "Fuel":
+                print("Refill");
+                break;
+            default:
+                print("HIT!!!!!!!!!!!!!");
+                break;
+
+        }
+    }
+
+    private void Thrust()
+    {
+       
         if (Input.GetKey(KeyCode.Space))
         {
             //print("Thrusting!");
-            rigidBody.AddRelativeForce(Vector3.up);
+            rigidBody.AddRelativeForce(Vector3.up*mainThrust);
 
             if (!audioSource.isPlaying)
             {
@@ -45,46 +66,28 @@ public class Rocket : MonoBehaviour {
         {
             audioSource.Stop();
         }
+    }
 
-            //Check to see if you just set the toggle to positive
-            /* if (m_Play == true && m_ToggleChange == true)
-             {
-                 audioSourse.Play();
-                 //Ensure audio doesn’t play more than once
-                 m_ToggleChange = false;
-             }
-             //Check if you just set the toggle to false
-             if (m_Play == false && m_ToggleChange == true)
-             {
-                 //Stop the audio
-                 audioSourse.Stop();
-                 //Ensure audio doesn’t play more than once
-                 m_ToggleChange = false;
-             }*/
+    private void Rotate()
+    {
+
+        rigidBody.freezeRotation = true; // take manual control of physics
+
+        float rotationThisFrame = rcsThrust * Time.deltaTime;
         
-
-
         if (Input.GetKey(KeyCode.A))
         {
             //print("Rotate Left");
-            transform.Rotate(Vector3.forward);
-        }else if (Input.GetKey(KeyCode.D))
+            transform.Rotate(Vector3.forward*rotationThisFrame);
+        }
+        else if (Input.GetKey(KeyCode.D))
         {
             //print("Rotate Right");
-            transform.Rotate(-Vector3.forward);
+            transform.Rotate(-Vector3.forward*rotationThisFrame);
         }
+
+        rigidBody.freezeRotation = false; // return control of physics
+
     }
 
-  /*  void OnGUI()
-    {
-        //Switch this toggle to activate and deactivate the parent GameObject
-        m_Play = GUI.Toggle(new Rect(10, 10, 100, 30), m_Play, "Play Music");
-
-        //Detect if there is a change with the toggle
-        if (GUI.changed)
-        {
-            //Change to true to show that there was just a change in the toggle state
-            m_ToggleChange = true;
-        }
-    }*/
 }
